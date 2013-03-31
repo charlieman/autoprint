@@ -1,6 +1,6 @@
 #!/usr/bin/python
-# encoding: utf-8
-from __future__ import unicode_literals
+# -*- coding: utf-8 -*-
+from __future__ import print_function, unicode_literals
 import sys
 from PySide import QtCore, QtGui, QtWebKit
 
@@ -16,14 +16,15 @@ class PrintPage(QtGui.QMainWindow):
 
     def __init__(self):
         super(PrintPage, self).__init__()
+        self.setWindowTitle(self.name)
 
         self.printer = QtGui.QPrinter()
 
         self.view = QtWebKit.QWebView()
         self.view.loadFinished.connect(self.loadFinished)
         self.setCentralWidget(self.view)
-        self.status = QtGui.QLabel("")
-        self.statusBar().addWidget(self.status)
+        #self.status = QtGui.QLabel("")
+        #self.statusBar().addWidget(self.status)
     
     def loadFinished(self):
         self.setStatusMessage("")
@@ -31,22 +32,23 @@ class PrintPage(QtGui.QMainWindow):
     
     def start_print(self):
         host = self.url.host()
-        if not self.config_exists(host):
-            self.preview = QtGui.QPrintPreviewDialog(self.printer)
-            self.preview.paintRequested.connect(self.paintRequested)
-            if self.preview.exec_() == QtGui.QDialog.Accepted:
-                self.setStatusMessage("Imprimiendo...")
-                r = QtGui.QMessageBox(self)
-                r.setText("¿Usar siempre esta configuración para este dominio?")
-                r.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-                r.setDefaultButton(QtGui.QMessageBox.Yes)
-
-                if r.exec_() == QtGui.QMessageBox.Yes:
-                    self.save_printer_config_for_host(host, self.preview.printer())
-        else:
+        if self.config_exists(host):
             self.load_printer_config_for_host(host)
-            self.setStatusMessage("Imprimiendo...")
-            self.view.print_(self.printer)
+        
+        self.setStatusMessage(self.tr("Printing..."))
+
+        self.preview = QtGui.QPrintPreviewDialog(self.printer)
+        self.preview.paintRequested.connect(self.paintRequested)
+        if self.preview.exec_() == QtGui.QDialog.Accepted:
+            self.setStatusMessage(self.tr("Printing..."))
+            r = QtGui.QMessageBox(self)
+            r.setWindowTitle(self.name)
+            r.setText(self.tr("Always use this configuration for this domain?"))
+            r.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+            r.setDefaultButton(QtGui.QMessageBox.Yes)
+
+            if r.exec_() == QtGui.QMessageBox.Yes:
+                self.save_printer_config_for_host(host, self.preview.printer())
 
         self.setStatusMessage("")
         QtCore.QTimer.singleShot(1000, self.finished.emit)
@@ -62,17 +64,18 @@ class PrintPage(QtGui.QMainWindow):
         elif self.url.scheme() == "prints":
             self.url.setScheme("https")
 
-        self.setStatusMessage("Cargando url: %s" % self.url.toString())
+        self.setStatusMessage(self.tr("Loading url: {}").format(self.url.toString()))
         self.view.load(self.url)
 
     def run(self):
         host = self.url.host()
         if not self.auto_print(host):
             r = QtGui.QMessageBox(self)
-            r.setText("Se solicita imprimir url:\n    %s\n\n¿Permitir?" % self.url.toString())
-            always = r.addButton("Siempre", QtGui.QMessageBox.ActionRole)
-            just_this_time =  r.addButton("Solo esta vez", QtGui.QMessageBox.ActionRole)
-            no =  r.addButton("No", QtGui.QMessageBox.ActionRole)
+            r.setWindowTitle(self.name)
+            r.setText(self.tr("Allow printing of:\n{}").format(self.url.toString()))
+            always = r.addButton(self.tr("Always"), QtGui.QMessageBox.ActionRole)
+            just_this_time =  r.addButton(self.tr("Just this time"), QtGui.QMessageBox.ActionRole)
+            no =  r.addButton(self.tr("No"), QtGui.QMessageBox.ActionRole)
 
             r.exec_()
             res = r.clickedButton()
@@ -87,7 +90,8 @@ class PrintPage(QtGui.QMainWindow):
             self.start_print()
 
     def setStatusMessage(self, text):
-        self.status.setText(text)
+        self.statusBar().showMessage(text)
+        #self.status.setText(text)
 
     def auto_print(self, host):
         settings = QtCore.QSettings()
@@ -120,6 +124,10 @@ class PrintPage(QtGui.QMainWindow):
             margins = [float(i) for i in margins]
             margins.append(QtGui.QPrinter.Unit.Point)
             self.printer.setPageMargins(*margins)
+        
+        orientation = QtGui.QPrinter.Orientation.values.get(settings.value('orientation'), None)
+        if orientation:
+            self.printer.setOrientation(orientation)
 
     def save_printer_config_for_host(self, host, printer):
         settings = QtCore.QSettings()
@@ -128,6 +136,7 @@ class PrintPage(QtGui.QMainWindow):
         settings.setValue('paperSize', printer.paperSize().name)
         settings.setValue('colorMode', printer.colorMode().name)
         settings.setValue('margins', printer.getPageMargins(QtGui.QPrinter.Unit.Point))
+        settings.setValue('orientation', printer.orientation().name)
         settings.endGroup()
 
     def config_exists(self, host):
@@ -143,10 +152,15 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         url = sys.argv[1]
     else:
-        print "Usage: %s [URL]" % sys.argv[0]
+        print("Usage: {} [URL]".format(sys.argv[0]))
         sys.exit(1)
 
+    tr = QtCore.QTranslator()
+    tr.load('en_US', 'i18n')
+
     app = QtGui.QApplication(sys.argv)
+    app.installTranslator(tr)
+
     app.setOrganizationName(__organization__)
     app.setOrganizationDomain(__organization_domain__)
     app.setApplicationName(__application_name__)
@@ -155,7 +169,7 @@ if __name__ == '__main__':
     printer = PrintPage()
     printer.finished.connect(app.quit)
     printer.load(url)
-    printer.show()
+    #printer.show()
 
     #QtCore.QTimer.singleShot(0, printer.run)
 
