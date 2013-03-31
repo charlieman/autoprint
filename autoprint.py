@@ -4,9 +4,10 @@ from __future__ import unicode_literals
 import sys
 from PySide import QtCore, QtGui, QtWebKit
 
-__organization__ = 'stormlabs'
-__organization_domain__ = 'stormlabs-peru.com'
+__organization__ = 'autoprint'
+__organization_domain__ = 'http://github.com/charlieman/autoprint'
 __application_name__ = 'autoprint'
+__version__ = "v0.1"
 
 
 class PrintPage(QtGui.QMainWindow):
@@ -21,8 +22,11 @@ class PrintPage(QtGui.QMainWindow):
         self.view = QtWebKit.QWebView()
         self.view.loadFinished.connect(self.loadFinished)
         self.setCentralWidget(self.view)
+        self.status = QtGui.QLabel("")
+        self.statusBar().addWidget(self.status)
     
     def loadFinished(self):
+        self.setStatusMessage("")
         self.run()
     
     def start_print(self):
@@ -31,6 +35,7 @@ class PrintPage(QtGui.QMainWindow):
             self.preview = QtGui.QPrintPreviewDialog(self.printer)
             self.preview.paintRequested.connect(self.paintRequested)
             if self.preview.exec_() == QtGui.QDialog.Accepted:
+                self.setStatusMessage("Imprimiendo...")
                 r = QtGui.QMessageBox(self)
                 r.setText("¿Usar siempre esta configuración para este dominio?")
                 r.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
@@ -40,8 +45,10 @@ class PrintPage(QtGui.QMainWindow):
                     self.save_printer_config_for_host(host, self.preview.printer())
         else:
             self.load_printer_config_for_host(host)
+            self.setStatusMessage("Imprimiendo...")
             self.view.print_(self.printer)
 
+        self.setStatusMessage("")
         QtCore.QTimer.singleShot(1000, self.finished.emit)
 
     def paintRequested(self, printer):
@@ -54,6 +61,8 @@ class PrintPage(QtGui.QMainWindow):
             self.url.setScheme("http")
         elif self.url.scheme() == "prints":
             self.url.setScheme("https")
+
+        self.setStatusMessage("Cargando url: %s" % self.url.toString())
         self.view.load(self.url)
 
     def run(self):
@@ -76,6 +85,9 @@ class PrintPage(QtGui.QMainWindow):
                 self.finished.emit()
         else:
             self.start_print()
+
+    def setStatusMessage(self, text):
+        self.status.setText(text)
 
     def auto_print(self, host):
         settings = QtCore.QSettings()
@@ -105,7 +117,8 @@ class PrintPage(QtGui.QMainWindow):
             
         margins = settings.value('margins', None)
         if margins:
-            margins = margins + (QtGui.QPrinter.Unit.Point, )
+            margins = [float(i) for i in margins]
+            margins.append(QtGui.QPrinter.Unit.Point)
             self.printer.setPageMargins(*margins)
 
     def save_printer_config_for_host(self, host, printer):
@@ -137,6 +150,7 @@ if __name__ == '__main__':
     app.setOrganizationName(__organization__)
     app.setOrganizationDomain(__organization_domain__)
     app.setApplicationName(__application_name__)
+    app.setApplicationVersion(__version__)
 
     printer = PrintPage()
     printer.finished.connect(app.quit)
