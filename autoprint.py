@@ -76,25 +76,6 @@ class PrintPage(QtGui.QMainWindow):
                 self.finished.emit()
         else:
             self.start_print()
-                
-
-    def get_host_config(self, host):
-        settings = QtCore.QSettings()
-        settings.beginGroup(host)
-        keys = settings.allKeys()
-        conf = {}
-        for key in keys:
-            conf[key] = settings.value(key)
-        settings.endGroup()
-        return conf
-
-    def set_host_config(self, host, conf):
-        settings = QtCore.QSettings()
-        settings.beginGroup(host)
-        for key, value in conf.items():
-            settings.setValue(key, value)
-        settings.endGroup()
-        settings.sync()
 
     def auto_print(self, host):
         settings = QtCore.QSettings()
@@ -108,7 +89,6 @@ class PrintPage(QtGui.QMainWindow):
         settings.beginGroup("domains")
         settings.setValue(host, auto)
         settings.endGroup()
-        settings.sync()
         
     def load_printer_config_for_host(self, host):
         settings = QtCore.QSettings()
@@ -127,7 +107,6 @@ class PrintPage(QtGui.QMainWindow):
         if margins:
             margins = margins + (QtGui.QPrinter.Unit.Point, )
             self.printer.setPageMargins(*margins)
-
 
     def save_printer_config_for_host(self, host, printer):
         settings = QtCore.QSettings()
