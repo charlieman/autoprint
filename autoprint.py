@@ -111,22 +111,22 @@ class PrintPage(QtGui.QMainWindow):
         settings.beginGroup(host)
 
         paper_size = QtGui.QPrinter.PageSize.values.get(settings.value('paperSize'), None)
-        if paper_size:
+        if paper_size is not None:
             self.printer.setPaperSize(paper_size)
 
         color_mode = QtGui.QPrinter.ColorMode.values.get(settings.value('colorMode'), None)
 
-        if color_mode:
+        if color_mode is not None:
             self.printer.setColorMode(color_mode)
             
         margins = settings.value('margins', None)
-        if margins:
+        if margins is not None:
             margins = [float(i) for i in margins]
             margins.append(QtGui.QPrinter.Unit.Point)
             self.printer.setPageMargins(*margins)
         
         orientation = QtGui.QPrinter.Orientation.values.get(settings.value('orientation'), None)
-        if orientation:
+        if orientation is not None:
             self.printer.setOrientation(orientation)
 
     def save_printer_config_for_host(self, host, printer):
