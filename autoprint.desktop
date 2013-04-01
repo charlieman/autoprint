@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=AutoPrint
+Comment=Custom protocol handler for print://
+Exec=autoprint.py %u
+Terminal=0
+Type=Application
+X-MultipleArgs=True
+MimeType=x-scheme-handler/print
+Encoding=UTF-8
+Categories=Network;Application;
