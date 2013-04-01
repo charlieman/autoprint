@@ -1,0 +1,9 @@
+AutoPrint is a tool that prints the given url.
+
+It's meant to be used by associating a `print://` scheme so it can be
+called from a website by simply loading a url. The tool will translate
+`print://` to `http://` and load it. From there, the user can configure
+and print the page.
+
+The use case is in web based invoce systems, so users can avoid dealing
+with manually printing the page.
