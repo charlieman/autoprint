@@ -35,15 +35,15 @@ class PrintPage(QtGui.QMainWindow):
         if self.config_exists(host):
             self.load_printer_config_for_host(host)
         
-        self.setStatusMessage(self.tr("Printing..."))
+        self.setStatusMessage("Printing...")
 
         self.preview = QtGui.QPrintPreviewDialog(self.printer)
         self.preview.paintRequested.connect(self.paintRequested)
         if self.preview.exec_() == QtGui.QDialog.Accepted:
-            self.setStatusMessage(self.tr("Printing..."))
+            self.setStatusMessage("Printing...")
             r = QtGui.QMessageBox(self)
             r.setWindowTitle(self.name)
-            r.setText(self.tr("Always use this configuration for this domain?"))
+            r.setText("Always use this configuration for this domain?")
             r.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
             r.setDefaultButton(QtGui.QMessageBox.Yes)
 
@@ -64,7 +64,7 @@ class PrintPage(QtGui.QMainWindow):
         elif self.url.scheme() == "prints":
             self.url.setScheme("https")
 
-        self.setStatusMessage(self.tr("Loading url: {}").format(self.url.toString()))
+        self.setStatusMessage("Loading url: {}".format(self.url.toString()))
         self.view.load(self.url)
 
     def run(self):
@@ -72,10 +72,10 @@ class PrintPage(QtGui.QMainWindow):
         if not self.auto_print(host):
             r = QtGui.QMessageBox(self)
             r.setWindowTitle(self.name)
-            r.setText(self.tr("Allow printing of:\n{}").format(self.url.toString()))
-            always = r.addButton(self.tr("Always"), QtGui.QMessageBox.ActionRole)
-            just_this_time =  r.addButton(self.tr("Just this time"), QtGui.QMessageBox.ActionRole)
-            no =  r.addButton(self.tr("No"), QtGui.QMessageBox.ActionRole)
+            r.setText("Allow printing of:\n{}".format(self.url.toString()))
+            always = r.addButton("Always", QtGui.QMessageBox.ActionRole)
+            just_this_time =  r.addButton("Just this time", QtGui.QMessageBox.ActionRole)
+            no =  r.addButton("No", QtGui.QMessageBox.ActionRole)
 
             r.exec_()
             res = r.clickedButton()
