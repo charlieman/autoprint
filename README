@@ -6,4 +6,8 @@ called from a website by simply loading a url. The tool will translate
 and print the page.
 
 The use case is in web based invoce systems, so users can avoid dealing
-with manually printing the page.
+with manually printing the page and without the extra headers usually
+added by web browsers.
+
+print.ico by http://momentumdesignlab.com/ CC-by (obtained from 
+http://findicons.com/icon/263313/printer?id=384248)
