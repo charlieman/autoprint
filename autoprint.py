@@ -32,7 +32,8 @@ class PrintPage(QtGui.QMainWindow):
     
     def start_print(self):
         host = self.url.host()
-        if self.config_exists(host):
+        config_exists = self.config_exists(host)
+        if config_exists:
             self.load_printer_config_for_host(host)
         
         self.setStatusMessage("Printing...")
@@ -41,14 +42,15 @@ class PrintPage(QtGui.QMainWindow):
         self.preview.paintRequested.connect(self.paintRequested)
         if self.preview.exec_() == QtGui.QDialog.Accepted:
             self.setStatusMessage("Printing...")
-            r = QtGui.QMessageBox(self)
-            r.setWindowTitle(self.name)
-            r.setText("Always use this configuration for this domain?")
-            r.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-            r.setDefaultButton(QtGui.QMessageBox.Yes)
+            if not config_exists:
+                r = QtGui.QMessageBox(self)
+                r.setWindowTitle(self.name)
+                r.setText("Always use this configuration for this domain?")
+                r.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+                r.setDefaultButton(QtGui.QMessageBox.Yes)
 
-            if r.exec_() == QtGui.QMessageBox.Yes:
-                self.save_printer_config_for_host(host, self.preview.printer())
+                if r.exec_() == QtGui.QMessageBox.Yes:
+                    self.save_printer_config_for_host(host, self.preview.printer())
 
         self.setStatusMessage("")
         QtCore.QTimer.singleShot(1000, self.finished.emit)
@@ -154,6 +156,7 @@ if __name__ == '__main__':
     else:
         print("Usage: {} [URL]".format(sys.argv[0]))
         sys.exit(1)
+        #ToDo: Add a configuration view when opened without arguments
 
     tr = QtCore.QTranslator()
     tr.load('en_US', 'i18n')
